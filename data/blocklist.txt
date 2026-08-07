@@ -1,0 +1,5 @@
+# Extra tracker / analytics URL patterns (one per line).
+# Merged with the builtin list. Globs for Chrome Network.setBlockedURLs.
+# Lines starting with # are ignored.
+
+# *example-tracker.com*

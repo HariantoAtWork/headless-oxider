@@ -4,12 +4,51 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: rust-headless:1.0.0
+    image: rust-headless:1.1.0
     ports:
       - "${RUST_FETCH_HOST_PORT:-9381}:9381"
     environment:
       RUST_FETCH_PORT: "${RUST_FETCH_PORT:-9381}"
       RUST_FETCH_HOST: "0.0.0.0"
       CHROME_PATH: /usr/bin/chromium
+      STEALTH: "${STEALTH:-1}"
+      HEADFUL: "${HEADFUL:-0}"
+      FINGERPRINT_PROFILE: "${FINGERPRINT_PROFILE:-native}"
+      PROXY_URL: "${PROXY_URL:-}"
+      BLOCKLIST_PATH: /etc/headless-rust/blocklist.txt
+      SESSIONS_DIR: /var/lib/headless-rust/sessions
+    volumes:
+      - rust-sessions:/var/lib/headless-rust/sessions
     shm_size: "1gb"
     restart: unless-stopped
+
+  # Headful under Xvfb — less “headless Chrome” surface. Usage:
+  #   HEADFUL=1 docker compose --profile headful up -d
+  headless-rust-headful:
+    profiles: ["headful"]
+    container_name: rust-headless-xvfb
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rust-headless:1.1.0
+    ports:
+      - "${RUST_FETCH_HOSTFUL_PORT:-9382}:9381"
+    environment:
+      RUST_FETCH_PORT: "9381"
+      RUST_FETCH_HOST: "0.0.0.0"
+      CHROME_PATH: /usr/bin/chromium
+      STEALTH: "${STEALTH:-1}"
+      HEADFUL: "1"
+      FINGERPRINT_PROFILE: "${FINGERPRINT_PROFILE:-native}"
+      PROXY_URL: "${PROXY_URL:-}"
+      BLOCKLIST_PATH: /etc/headless-rust/blocklist.txt
+      SESSIONS_DIR: /var/lib/headless-rust/sessions
+    volumes:
+      - rust-sessions:/var/lib/headless-rust/sessions
+    shm_size: "1gb"
+    entrypoint: ["xvfb-run", "-a", "-s", "-screen 0 1920x1080x24"]
+    command: ["headless-rust"]
+    restart: unless-stopped
+
+volumes:
+  rust-sessions:

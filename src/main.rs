@@ -1,33 +1,42 @@
-//! Headless Chromium fetch service — same REST shape as headless-playwright.
-//! GET /health · POST /fetch { url, timeoutMs? } · GET /
+//! Headless Chromium fetch service — stealth by default (chaser-oxide).
+//! GET /health · POST /fetch · GET /
 
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::time::{Duration, Instant};
+mod blocklist;
+mod config;
+mod fetch;
+mod stealth;
+mod worker;
+
+use std::time::Instant;
 
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::routing::{get, post};
 use axum::{Json, Router};
-use chromiumoxide::browser::{Browser, BrowserConfig};
-use futures::StreamExt;
 use serde::{Deserialize, Serialize};
-use tokio::sync::Mutex;
 use tracing::{error, info};
 
-const DEFAULT_PORT: u16 = 9381;
+use blocklist::Blocklist;
+use config::Config;
+use stealth::{resolve_profile_kind, ProfileKind};
+use worker::BrowserHandle;
+
 const DEFAULT_TIMEOUT_MS: u64 = 45_000;
 const MAX_TIMEOUT_MS: u64 = 120_000;
 
 #[derive(Clone)]
 struct AppState {
-    browser: Arc<Mutex<Option<Browser>>>,
+    browser: BrowserHandle,
+    config: Config,
+    profile_kind: ProfileKind,
+    blocklist_len: usize,
 }
 
 #[derive(Serialize)]
 struct Blurb {
     service: &'static str,
     version: &'static str,
+    stealth_default: bool,
     endpoints: Endpoints,
 }
 
@@ -41,6 +50,9 @@ struct Endpoints {
 struct HealthOk {
     ok: bool,
     browser: &'static str,
+    stealth: bool,
+    profile: String,
+    blocklist: usize,
 }
 
 #[derive(Serialize)]
@@ -54,6 +66,12 @@ struct FetchBody {
     url: String,
     #[serde(default, rename = "timeoutMs")]
     timeout_ms: Option<u64>,
+    #[serde(default, rename = "sessionKey")]
+    session_key: Option<String>,
+    #[serde(default)]
+    proxy: Option<String>,
+    #[serde(default)]
+    stealth: Option<bool>,
 }
 
 #[derive(Serialize)]
@@ -64,6 +82,8 @@ struct FetchOk {
     url: String,
     #[serde(rename = "latencyMs")]
     latency_ms: u64,
+    stealth: bool,
+    profile: String,
 }
 
 #[derive(Serialize)]
@@ -77,123 +97,28 @@ fn clamp_timeout(ms: Option<u64>) -> u64 {
     n.clamp(1_000, MAX_TIMEOUT_MS)
 }
 
-fn chrome_path() -> Option<PathBuf> {
-    let from_env = std::env::var("CHROME_PATH")
-        .ok()
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .map(PathBuf::from);
-    if from_env.is_some() {
-        return from_env;
-    }
-    for candidate in [
-        "/usr/bin/chromium",
-        "/usr/bin/chromium-browser",
-        "/usr/bin/google-chrome",
-        "/usr/bin/google-chrome-stable",
-    ] {
-        let p = PathBuf::from(candidate);
-        if p.exists() {
-            return Some(p);
-        }
-    }
-    None
-}
-
-async fn ensure_browser(state: &AppState) -> Result<(), String> {
-    let mut guard = state.browser.lock().await;
-    if guard.is_some() {
-        return Ok(());
-    }
-
-    let mut builder = BrowserConfig::builder()
-        .arg("--no-sandbox")
-        .arg("--disable-dev-shm-usage")
-        .arg("--disable-gpu");
-
-    if let Some(path) = chrome_path() {
-        builder = builder.chrome_executable(path);
-    }
-
-    let config = builder.build().map_err(|e| e.to_string())?;
-    let (browser, mut handler) = Browser::launch(config)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    tokio::spawn(async move {
-        while let Some(h) = handler.next().await {
-            if h.is_err() {
-                break;
-            }
-        }
-    });
-
-    *guard = Some(browser);
-    Ok(())
-}
-
-async fn get_browser(state: &AppState) -> Result<Browser, String> {
-    ensure_browser(state).await?;
-    let guard = state.browser.lock().await;
-    guard
-        .as_ref()
-        .cloned()
-        .ok_or_else(|| "browser not launched".to_string())
-}
-
-async fn fetch_page(state: &AppState, url: &str, timeout_ms: u64) -> Result<(String, String, String), String> {
-    let browser = get_browser(state).await?;
-
-    let page = tokio::time::timeout(Duration::from_millis(timeout_ms), browser.new_page(url))
-        .await
-        .map_err(|_| "timeout opening page".to_string())?
-        .map_err(|e| e.to_string())?;
-
-    // new_page(url) already navigates; read DOM after load.
-    let title = tokio::time::timeout(Duration::from_millis(timeout_ms), page.get_title())
-        .await
-        .map_err(|_| "timeout reading title".to_string())?
-        .map_err(|e| e.to_string())?
-        .unwrap_or_default();
-
-    let html = tokio::time::timeout(Duration::from_millis(timeout_ms), page.content())
-        .await
-        .map_err(|_| "timeout reading HTML".to_string())?
-        .map_err(|e| e.to_string())?;
-
-    if html.trim().is_empty() {
-        return Err("empty HTML".to_string());
-    }
-
-    let final_url = page.url().await.ok().flatten().unwrap_or_else(|| url.to_string());
-    let _ = page.close().await;
-    Ok((
-        if title.is_empty() {
-            final_url.clone()
-        } else {
-            title
-        },
-        html,
-        final_url,
-    ))
-}
-
-async fn root() -> Json<Blurb> {
+async fn root(State(state): State<AppState>) -> Json<Blurb> {
     Json(Blurb {
         service: "headless-rust",
         version: env!("CARGO_PKG_VERSION"),
+        stealth_default: state.config.stealth,
         endpoints: Endpoints {
             health: "GET /health",
-            fetch: "POST /fetch { url, timeoutMs? }",
+            fetch: "POST /fetch { url, timeoutMs?, sessionKey?, proxy?, stealth? }",
         },
     })
 }
 
-async fn health(State(state): State<AppState>) -> Result<Json<HealthOk>, (StatusCode, Json<HealthErr>)> {
-    match ensure_browser(&state).await {
+async fn health(
+    State(state): State<AppState>,
+) -> Result<Json<HealthOk>, (StatusCode, Json<HealthErr>)> {
+    match state.browser.warm().await {
         Ok(()) => Ok(Json(HealthOk {
             ok: true,
             browser: "chromium",
+            stealth: state.config.stealth,
+            profile: state.profile_kind.id().to_string(),
+            blocklist: state.blocklist_len,
         })),
         Err(error) => {
             error!(%error, "health failed");
@@ -205,7 +130,7 @@ async fn health(State(state): State<AppState>) -> Result<Json<HealthOk>, (Status
     }
 }
 
-async fn fetch(
+async fn fetch_handler(
     State(state): State<AppState>,
     Json(body): Json<FetchBody>,
 ) -> Result<Json<FetchOk>, (StatusCode, Json<ErrBody>)> {
@@ -220,14 +145,30 @@ async fn fetch(
         ));
     }
     let timeout_ms = clamp_timeout(body.timeout_ms);
+    let stealth = body.stealth.unwrap_or(state.config.stealth);
+    let session = body
+        .session_key
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+    let proxy = body
+        .proxy
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+
     let started = Instant::now();
-    match fetch_page(&state, &url, timeout_ms).await {
-        Ok((title, html, final_url)) => Ok(Json(FetchOk {
+    match state
+        .browser
+        .fetch(url.clone(), timeout_ms, session, proxy, stealth)
+        .await
+    {
+        Ok(result) => Ok(Json(FetchOk {
             ok: true,
-            title,
-            html,
-            url: final_url,
+            title: result.title,
+            html: result.html,
+            url: result.url,
             latency_ms: started.elapsed().as_millis() as u64,
+            stealth: result.stealth,
+            profile: result.profile,
         })),
         Err(error) => {
             error!(%error, %url, "fetch failed");
@@ -248,24 +189,36 @@ async fn main() {
         )
         .init();
 
-    let port: u16 = std::env::var("RUST_FETCH_PORT")
-        .or_else(|_| std::env::var("PORT"))
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(DEFAULT_PORT);
-    let host = std::env::var("RUST_FETCH_HOST").unwrap_or_else(|_| "0.0.0.0".into());
+    let config = Config::from_env();
+    let profile_kind = resolve_profile_kind(&config.fingerprint_profile);
+    let blocklist = Blocklist::load(&config.blocklist_path);
+    let blocklist_len = blocklist.len();
+    let _ = std::fs::create_dir_all(&config.sessions_dir);
+
+    info!(
+        stealth = config.stealth,
+        headful = config.headful,
+        profile = profile_kind.id(),
+        blocklist = blocklist_len,
+        "headless-rust starting"
+    );
+
+    let browser = BrowserHandle::start(config.clone(), blocklist, profile_kind.clone());
 
     let state = AppState {
-        browser: Arc::new(Mutex::new(None)),
+        browser,
+        config: config.clone(),
+        profile_kind,
+        blocklist_len,
     };
 
     let app = Router::new()
         .route("/", get(root))
         .route("/health", get(health))
-        .route("/fetch", post(fetch))
+        .route("/fetch", post(fetch_handler))
         .with_state(state);
 
-    let addr = format!("{host}:{port}");
+    let addr = format!("{}:{}", config.host, config.port);
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
         .unwrap_or_else(|e| panic!("bind {addr}: {e}"));

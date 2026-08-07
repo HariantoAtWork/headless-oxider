@@ -8,3 +8,9 @@ services:
       - cloudflared
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  headless-rust-headful:
+    networks:
+      - cloudflared
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
