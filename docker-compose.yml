@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: rust-headless:1.1.0
+    image: rust-headless:1.1.1
     ports:
       - "${RUST_FETCH_HOST_PORT:-9381}:9381"
     environment:
@@ -30,7 +30,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: rust-headless:1.1.0
+    image: rust-headless:1.1.1
     ports:
       - "${RUST_FETCH_HOSTFUL_PORT:-9382}:9381"
     environment:
@@ -46,8 +46,21 @@ services:
     volumes:
       - rust-sessions:/var/lib/headless-rust/sessions
     shm_size: "1gb"
-    entrypoint: ["xvfb-run", "-a", "-s", "-screen 0 1920x1080x24"]
-    command: ["headless-rust"]
+    # xvfb-run as PID 1 hangs on SIGUSR1 readiness in Docker; start Xvfb ourselves.
+    entrypoint:
+      - sh
+      - -c
+      - |
+        Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp &
+        export DISPLAY=:99
+        i=0
+        while [ $$i -lt 50 ]; do
+          [ -S /tmp/.X11-unix/X99 ] && break
+          i=$$((i + 1))
+          sleep 0.1
+        done
+        exec headless-rust
+
     restart: unless-stopped
 
 volumes:

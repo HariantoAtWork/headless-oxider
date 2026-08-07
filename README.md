@@ -41,10 +41,12 @@ curl -s -X POST http://127.0.0.1:9381/fetch \
 Headful / Xvfb:
 
 ```bash
-HEADFUL=1 docker compose --profile headful up -d --build
+docker compose --profile headful up -d --build
 ```
 
-Default host port: **9381** (Playwright 9380, Camoufox 9377, Obscura 9222).
+Do not export `HEADFUL=1` for the default service — that container has no display. The headful service already sets `HEADFUL=1` itself.
+
+Default host ports: **9381** (headless), **9382** (headful / Xvfb). Related stack: Playwright 9380, Camoufox 9377, Obscura 9222.
 
 First build compiles chaser-oxide / CDP bindings — expect several minutes.
 
