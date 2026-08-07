@@ -1,0 +1,34 @@
+# Pull-only stack: image defaults, no local build.
+services:
+  headless-oxider:
+    image: harianto/headless-oxider:1.1.1
+    ports:
+      - "9381:9381"
+    shm_size: "1gb"
+    restart: unless-stopped
+
+  # Headful under Xvfb — less “headless Chrome” surface. Usage:
+  #   docker compose -f docs/docker-compose.image.yml --profile headful up -d
+  headless-oxider-headful:
+    profiles: ["headful"]
+    image: harianto/headless-oxider:1.1.1
+    ports:
+      - "9382:9381"
+    environment:
+      HEADFUL: "1"
+    shm_size: "1gb"
+    # xvfb-run as PID 1 hangs on SIGUSR1 readiness in Docker; start Xvfb ourselves.
+    entrypoint:
+      - sh
+      - -c
+      - |
+        Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp &
+        export DISPLAY=:99
+        i=0
+        while [ $$i -lt 50 ]; do
+          [ -S /tmp/.X11-unix/X99 ] && break
+          i=$$((i + 1))
+          sleep 0.1
+        done
+        exec headless-oxider
+    restart: unless-stopped

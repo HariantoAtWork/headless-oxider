@@ -46,7 +46,16 @@ Pull a published image (no local build):
 docker pull harianto/headless-oxider:1.1.1
 ```
 
-Headful / Xvfb:
+Minimal compose (Hub `image:` only, env from image defaults):
+
+```bash
+docker compose -f docs/docker-compose.image.yml up -d
+docker compose -f docs/docker-compose.image.yml --profile headful up -d
+```
+
+See [docs/run-published-image.md](docs/run-published-image.md).
+
+Headful / Xvfb (local build / repo compose):
 
 ```bash
 docker compose --profile headful up -d --build
