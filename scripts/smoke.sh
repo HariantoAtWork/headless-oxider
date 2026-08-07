@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Quick stealth smoke against a running headless-rust (default :9381).
+# Quick stealth smoke against a running headless-oxider (default :9381).
 set -euo pipefail
 BASE="${1:-http://127.0.0.1:9381}"
 

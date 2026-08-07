@@ -1,6 +1,8 @@
-# headless-rust (stealth)
+# headless-oxider (stealth)
 
 Rust + [chaser-oxide](https://github.com/ccheshirecat/chaser-oxide) Chromium fetch service with **stealth on by default**.
+
+Docker Hub: [`hariantoatwork/headless-oxider`](https://hub.docker.com/r/hariantoatwork/headless-oxider) (override namespace with `DOCKERHUB_USERNAME`).
 
 Same REST contract as `headless-playwright` — the Nuxt blog talks HTTP only. Page loads stay **inside Chromium** (honest Chrome TLS / JA3); we do not MITM HTML through a separate HTTP client.
 
@@ -38,6 +40,12 @@ curl -s -X POST http://127.0.0.1:9381/fetch \
   -d '{"url":"https://example.com"}' | jq '{title, stealth, profile, latencyMs}'
 ```
 
+Pull a published image (no local build):
+
+```bash
+docker pull hariantoatwork/headless-oxider:1.1.1
+```
+
 Headful / Xvfb:
 
 ```bash
@@ -49,6 +57,17 @@ Do not export `HEADFUL=1` for the default service — that container has no disp
 Default host ports: **9381** (headless), **9382** (headful / Xvfb). Related stack: Playwright 9380, Camoufox 9377, Obscura 9222.
 
 First build compiles chaser-oxide / CDP bindings — expect several minutes.
+
+## Publish (GitHub Actions → Docker Hub)
+
+Pushing a version tag builds and pushes the image:
+
+```bash
+git tag v1.1.1
+git push origin v1.1.1
+```
+
+Requires repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`.
 
 ## Stealth smoke matrix (manual)
 
@@ -77,8 +96,9 @@ Run the same URLs through Obscura, Camoufox, and this service; record pass/fail:
 | `HEADFUL` | `0` | Headed Chrome (use Xvfb profile) |
 | `PROXY_URL` | — | Launch-time proxy |
 | `CHROME_PATH` | `/usr/bin/chromium` | Browser binary |
-| `BLOCKLIST_PATH` | `/etc/headless-rust/blocklist.txt` | Extra URL patterns |
-| `SESSIONS_DIR` | `/var/lib/headless-rust/sessions` | Sticky profiles |
+| `BLOCKLIST_PATH` | `/etc/headless-oxider/blocklist.txt` | Extra URL patterns |
+| `SESSIONS_DIR` | `/var/lib/headless-oxider/sessions` | Sticky profiles |
+| `DOCKERHUB_USERNAME` | `hariantoatwork` | Compose image namespace |
 
 ## Blog plugin
 

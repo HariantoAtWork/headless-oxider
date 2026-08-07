@@ -1,10 +1,10 @@
 services:
-  headless-rust:
-    container_name: rust-headless
+  headless-oxider:
+    container_name: headless-oxider
     build:
       context: .
       dockerfile: Dockerfile
-    image: rust-headless:1.1.1
+    image: ${DOCKERHUB_USERNAME:-hariantoatwork}/headless-oxider:1.1.1
     ports:
       - "${RUST_FETCH_HOST_PORT:-9381}:9381"
     environment:
@@ -15,22 +15,22 @@ services:
       HEADFUL: "${HEADFUL:-0}"
       FINGERPRINT_PROFILE: "${FINGERPRINT_PROFILE:-native}"
       PROXY_URL: "${PROXY_URL:-}"
-      BLOCKLIST_PATH: /etc/headless-rust/blocklist.txt
-      SESSIONS_DIR: /var/lib/headless-rust/sessions
+      BLOCKLIST_PATH: /etc/headless-oxider/blocklist.txt
+      SESSIONS_DIR: /var/lib/headless-oxider/sessions
     volumes:
-      - rust-sessions:/var/lib/headless-rust/sessions
+      - oxider-sessions:/var/lib/headless-oxider/sessions
     shm_size: "1gb"
     restart: unless-stopped
 
   # Headful under Xvfb — less “headless Chrome” surface. Usage:
-  #   HEADFUL=1 docker compose --profile headful up -d
-  headless-rust-headful:
+  #   docker compose --profile headful up -d
+  headless-oxider-headful:
     profiles: ["headful"]
-    container_name: rust-headless-xvfb
+    container_name: headless-oxider-xvfb
     build:
       context: .
       dockerfile: Dockerfile
-    image: rust-headless:1.1.1
+    image: ${DOCKERHUB_USERNAME:-hariantoatwork}/headless-oxider:1.1.1
     ports:
       - "${RUST_FETCH_HOSTFUL_PORT:-9382}:9381"
     environment:
@@ -41,10 +41,10 @@ services:
       HEADFUL: "1"
       FINGERPRINT_PROFILE: "${FINGERPRINT_PROFILE:-native}"
       PROXY_URL: "${PROXY_URL:-}"
-      BLOCKLIST_PATH: /etc/headless-rust/blocklist.txt
-      SESSIONS_DIR: /var/lib/headless-rust/sessions
+      BLOCKLIST_PATH: /etc/headless-oxider/blocklist.txt
+      SESSIONS_DIR: /var/lib/headless-oxider/sessions
     volumes:
-      - rust-sessions:/var/lib/headless-rust/sessions
+      - oxider-sessions:/var/lib/headless-oxider/sessions
     shm_size: "1gb"
     # xvfb-run as PID 1 hangs on SIGUSR1 readiness in Docker; start Xvfb ourselves.
     entrypoint:
@@ -59,9 +59,9 @@ services:
           i=$$((i + 1))
           sleep 0.1
         done
-        exec headless-rust
+        exec headless-oxider
 
     restart: unless-stopped
 
 volumes:
-  rust-sessions:
+  oxider-sessions:

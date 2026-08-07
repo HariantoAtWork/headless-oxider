@@ -53,11 +53,11 @@ impl Config {
             .or_else(detect_chrome);
         let sessions_dir = PathBuf::from(
             std::env::var("SESSIONS_DIR")
-                .unwrap_or_else(|_| "/var/lib/headless-rust/sessions".into()),
+                .unwrap_or_else(|_| "/var/lib/headless-oxider/sessions".into()),
         );
         let blocklist_path = PathBuf::from(
             std::env::var("BLOCKLIST_PATH")
-                .unwrap_or_else(|_| "/etc/headless-rust/blocklist.txt".into()),
+                .unwrap_or_else(|_| "/etc/headless-oxider/blocklist.txt".into()),
         );
         let port: u16 = std::env::var("RUST_FETCH_PORT")
             .or_else(|_| std::env::var("PORT"))

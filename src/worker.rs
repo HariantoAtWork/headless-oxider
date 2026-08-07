@@ -38,7 +38,7 @@ impl BrowserHandle {
     pub fn start(config: Config, blocklist: Blocklist, profile_kind: ProfileKind) -> Self {
         let (tx, rx) = mpsc::channel::<Job>(32);
         std::thread::Builder::new()
-            .name("headless-rust-browser".into())
+            .name("headless-oxider-browser".into())
             .spawn(move || {
                 let rt = tokio::runtime::Builder::new_current_thread()
                     .enable_all()

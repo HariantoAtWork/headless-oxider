@@ -1,5 +1,5 @@
 [package]
-name = "headless-rust"
+name = "headless-oxider"
 version = "1.1.1"
 edition = "2021"
 description = "Stealth Chromium fetch service (Rust + chaser-oxide)"

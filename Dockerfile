@@ -31,9 +31,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xauth \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/target/release/headless-rust /usr/local/bin/headless-rust
-COPY data/blocklist.txt /etc/headless-rust/blocklist.txt
-RUN mkdir -p /var/lib/headless-rust/sessions
+COPY --from=builder /app/target/release/headless-oxider /usr/local/bin/headless-oxider
+COPY data/blocklist.txt /etc/headless-oxider/blocklist.txt
+RUN mkdir -p /var/lib/headless-oxider/sessions
 
 ENV RUST_FETCH_PORT=9381
 ENV RUST_FETCH_HOST=0.0.0.0
@@ -41,9 +41,9 @@ ENV CHROME_PATH=/usr/bin/chromium
 ENV STEALTH=1
 ENV HEADFUL=0
 ENV FINGERPRINT_PROFILE=native
-ENV BLOCKLIST_PATH=/etc/headless-rust/blocklist.txt
-ENV SESSIONS_DIR=/var/lib/headless-rust/sessions
+ENV BLOCKLIST_PATH=/etc/headless-oxider/blocklist.txt
+ENV SESSIONS_DIR=/var/lib/headless-oxider/sessions
 
 EXPOSE 9381
 
-CMD ["headless-rust"]
+CMD ["headless-oxider"]

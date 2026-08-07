@@ -3,13 +3,13 @@ networks:
     external: true
 
 services:
-  headless-rust:
+  headless-oxider:
     networks:
       - cloudflared
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  headless-rust-headful:
+  headless-oxider-headful:
     networks:
       - cloudflared
     extra_hosts:

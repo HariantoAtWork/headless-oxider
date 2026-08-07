@@ -99,7 +99,7 @@ fn clamp_timeout(ms: Option<u64>) -> u64 {
 
 async fn root(State(state): State<AppState>) -> Json<Blurb> {
     Json(Blurb {
-        service: "headless-rust",
+        service: "headless-oxider",
         version: env!("CARGO_PKG_VERSION"),
         stealth_default: state.config.stealth,
         endpoints: Endpoints {
@@ -200,7 +200,7 @@ async fn main() {
         headful = config.headful,
         profile = profile_kind.id(),
         blocklist = blocklist_len,
-        "headless-rust starting"
+        "headless-oxider starting"
     );
 
     let browser = BrowserHandle::start(config.clone(), blocklist, profile_kind.clone());
