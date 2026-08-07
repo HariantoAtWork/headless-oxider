@@ -1,0 +1,17 @@
+[package]
+name = "headless-rust"
+version = "1.0.0"
+edition = "2021"
+description = "Headless Chromium fetch service (Rust + chromiumoxide)"
+publish = false
+
+[dependencies]
+axum = "0.8"
+chromiumoxide = "0.7"
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.6", features = ["trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

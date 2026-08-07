@@ -1,0 +1,15 @@
+services:
+  headless-rust:
+    container_name: rust-headless
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rust-headless:1.0.0
+    ports:
+      - "${RUST_FETCH_HOST_PORT:-9381}:9381"
+    environment:
+      RUST_FETCH_PORT: "${RUST_FETCH_PORT:-9381}"
+      RUST_FETCH_HOST: "0.0.0.0"
+      CHROME_PATH: /usr/bin/chromium
+    shm_size: "1gb"
+    restart: unless-stopped
