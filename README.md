@@ -60,14 +60,18 @@ First build compiles chaser-oxide / CDP bindings — expect several minutes.
 
 ## Publish (GitHub Actions → Docker Hub)
 
-Pushing a version tag builds and pushes the image:
+Pushing a **git tag** builds and pushes a **multi-arch** image (`linux/amd64` + `linux/arm64`):
 
 ```bash
 git tag v1.1.1
 git push origin v1.1.1
 ```
 
+That yields Docker Hub tags such as `1.1.1`, `1.1`, and `latest`. GitHub does not create versions automatically — only a `v*` tag (or a manual workflow run) publishes.
+
 Requires repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`.
+
+Full details: [docs/docker-publish.md](docs/docker-publish.md) (when to tag, tag mapping, multi-arch, secrets).
 
 ## Stealth smoke matrix (manual)
 
