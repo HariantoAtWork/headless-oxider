@@ -1,4 +1,5 @@
 # Pull-only stack: image defaults, no local build.
+# Plain `docker compose up -d` starts both services (e.g. Synology UI).
 services:
   headless-oxider:
     image: harianto/headless-oxider:1.1.1
@@ -7,10 +8,8 @@ services:
     shm_size: "1gb"
     restart: unless-stopped
 
-  # Headful under Xvfb — less “headless Chrome” surface. Usage:
-  #   docker compose -f docs/docker-compose.image.yml --profile headful up -d
+  # Headful under Xvfb — less “headless Chrome” surface.
   headless-oxider-headful:
-    profiles: ["headful"]
     image: harianto/headless-oxider:1.1.1
     ports:
       - "9382:9381"
