@@ -2,7 +2,7 @@
 
 Rust + [chaser-oxide](https://github.com/ccheshirecat/chaser-oxide) Chromium fetch service with **stealth on by default**.
 
-Docker Hub: [`hariantoatwork/headless-oxider`](https://hub.docker.com/r/hariantoatwork/headless-oxider) (override namespace with `DOCKERHUB_USERNAME`).
+Docker Hub: [`harianto/headless-oxider`](https://hub.docker.com/r/harianto/headless-oxider) (override namespace with `DOCKERHUB_USERNAME`).
 
 Same REST contract as `headless-playwright` — the Nuxt blog talks HTTP only. Page loads stay **inside Chromium** (honest Chrome TLS / JA3); we do not MITM HTML through a separate HTTP client.
 
@@ -43,7 +43,7 @@ curl -s -X POST http://127.0.0.1:9381/fetch \
 Pull a published image (no local build):
 
 ```bash
-docker pull hariantoatwork/headless-oxider:1.1.1
+docker pull harianto/headless-oxider:1.1.1
 ```
 
 Headful / Xvfb:
@@ -102,7 +102,7 @@ Run the same URLs through Obscura, Camoufox, and this service; record pass/fail:
 | `CHROME_PATH` | `/usr/bin/chromium` | Browser binary |
 | `BLOCKLIST_PATH` | `/etc/headless-oxider/blocklist.txt` | Extra URL patterns |
 | `SESSIONS_DIR` | `/var/lib/headless-oxider/sessions` | Sticky profiles |
-| `DOCKERHUB_USERNAME` | `hariantoatwork` | Compose image namespace |
+| `DOCKERHUB_USERNAME` | `harianto` | Compose image namespace |
 
 ## Blog plugin
 

@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-hariantoatwork}/headless-oxider:1.1.1
+    image: ${DOCKERHUB_USERNAME:-harianto}/headless-oxider:1.1.1
     ports:
       - "${RUST_FETCH_HOST_PORT:-9381}:9381"
     environment:
@@ -30,7 +30,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ${DOCKERHUB_USERNAME:-hariantoatwork}/headless-oxider:1.1.1
+    image: ${DOCKERHUB_USERNAME:-harianto}/headless-oxider:1.1.1
     ports:
       - "${RUST_FETCH_HOSTFUL_PORT:-9382}:9381"
     environment:

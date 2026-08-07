@@ -1,6 +1,6 @@
 # Docker publish
 
-How images get from this repo to [Docker Hub](https://hub.docker.com/r/hariantoatwork/headless-oxider).
+How images get from this repo to [Docker Hub](https://hub.docker.com/r/harianto/headless-oxider).
 
 ## Short version
 
@@ -52,9 +52,9 @@ Image name: `${DOCKERHUB_USERNAME}/headless-oxider`.
 Pull examples:
 
 ```bash
-docker pull hariantoatwork/headless-oxider:latest
-docker pull hariantoatwork/headless-oxider:1.2.0
-docker pull hariantoatwork/headless-oxider:1.2
+docker pull harianto/headless-oxider:latest
+docker pull harianto/headless-oxider:1.2.0
+docker pull harianto/headless-oxider:1.2
 ```
 
 One Hub tag is a **multi-arch manifest**. Clients pull `amd64` or `arm64` automatically.
