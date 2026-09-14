@@ -1,9 +1,6 @@
 services:
   headless-oxider:
     container_name: headless-oxider
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME:-harianto}/headless-oxider:1.1.1
     ports:
       - "${RUST_FETCH_HOST_PORT:-9381}:9381"
@@ -27,9 +24,6 @@ services:
   headless-oxider-headful:
     profiles: ["headful"]
     container_name: headless-oxider-xvfb
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: ${DOCKERHUB_USERNAME:-harianto}/headless-oxider:1.1.1
     ports:
       - "${RUST_FETCH_HOSTFUL_PORT:-9382}:9381"
