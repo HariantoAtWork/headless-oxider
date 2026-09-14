@@ -1,0 +1,7 @@
+# docker compose -f build.yml build
+services:
+  headless-oxider:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: harianto/headless-oxider:1.1.1
