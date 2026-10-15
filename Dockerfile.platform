@@ -1,4 +1,4 @@
-# Multi-platform build (used by push.yml with buildx).
+# Multi-platform build (used by _push.yml with buildx).
 # Platform comes from buildx `--platform` / compose `platforms:` — do not force BUILDPLATFORM
 # on the builder, or the wrong-arch binary can end up in the image.
 FROM rust:1.88-bookworm AS builder

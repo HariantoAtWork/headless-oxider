@@ -2,8 +2,8 @@
 # Local build / multi-arch Hub push via compose files.
 #
 # Usage:
-#   ./dc.sh build              # docker compose -f build.yml build
-#   ./dc.sh push               # docker compose -f push.yml build --no-cache --push
+#   ./dc.sh build              # docker compose -f _build.yml build
+#   ./dc.sh push               # docker compose -f _push.yml build --no-cache --push
 #   ./dc.sh build [args...]    # extra args passed through to compose build
 #   ./dc.sh push [args...]
 
@@ -15,8 +15,8 @@ cd "$ROOT"
 usage() {
   cat <<'EOF'
 Usage:
-  ./dc.sh build              # docker compose -f build.yml build
-  ./dc.sh push               # docker compose -f push.yml build --no-cache --push
+  ./dc.sh build              # docker compose -f _build.yml build
+  ./dc.sh push               # docker compose -f _push.yml build --no-cache --push
   ./dc.sh build [args...]    # extra args passed through to compose build
   ./dc.sh push [args...]
 EOF
@@ -29,10 +29,10 @@ shift || true
 
 case "$cmd" in
   build)
-    exec docker compose -f build.yml build "$@"
+    exec docker compose -f _build.yml build "$@"
     ;;
   push)
-    exec docker compose -f push.yml build --no-cache --push "$@"
+    exec docker compose -f _push.yml build --no-cache --push "$@"
     ;;
   -h|--help|help)
     usage 0

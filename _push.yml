@@ -1,5 +1,5 @@
-# docker compose -f push.yml build --no-cache --push
-# Multi-arch cannot be loaded into the local Docker engine; use build.yml for local images.
+# docker compose -f _push.yml build --no-cache --push
+# Multi-arch cannot be loaded into the local Docker engine; use _build.yml for local images.
 services:
   headless-oxider:
     build:
