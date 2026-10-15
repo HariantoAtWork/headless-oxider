@@ -2,7 +2,7 @@
 # Plain `docker compose up -d` starts both services (e.g. Synology UI).
 services:
   headless-oxider:
-    image: harianto/headless-oxider:1.1.1
+    image: harianto/headless-oxider:1.2.0
     ports:
       - "9381:9381"
     shm_size: "1gb"
@@ -10,7 +10,7 @@ services:
 
   # Headful under Xvfb — less “headless Chrome” surface.
   headless-oxider-headful:
-    image: harianto/headless-oxider:1.1.1
+    image: harianto/headless-oxider:1.2.0
     ports:
       - "9382:9381"
     environment:

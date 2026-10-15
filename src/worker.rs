@@ -11,6 +11,7 @@ use tracing::{info, warn};
 use crate::blocklist::Blocklist;
 use crate::config::Config;
 use crate::fetch::{self, FetchResult};
+use crate::pdf::{self, PdfOptions, PdfResult};
 use crate::stealth::ProfileKind;
 
 pub struct FetchJob {
@@ -22,11 +23,24 @@ pub struct FetchJob {
     pub reply: oneshot::Sender<Result<FetchResult, String>>,
 }
 
+pub struct PdfJob {
+    pub url: String,
+    pub timeout_ms: u64,
+    pub session_key: Option<String>,
+    pub proxy: Option<String>,
+    pub stealth: bool,
+    pub cookie: Option<String>,
+    pub wait_for_selector: Option<String>,
+    pub pdf: PdfOptions,
+    pub reply: oneshot::Sender<Result<PdfResult, String>>,
+}
+
 pub enum Job {
     Warm {
         reply: oneshot::Sender<Result<(), String>>,
     },
     Fetch(FetchJob),
+    Pdf(PdfJob),
 }
 
 #[derive(Clone)]
@@ -86,6 +100,35 @@ impl BrowserHandle {
             .map_err(|_| "browser worker gone".to_string())?;
         rx.await.map_err(|_| "browser worker dropped".to_string())?
     }
+
+    pub async fn pdf(
+        &self,
+        url: String,
+        timeout_ms: u64,
+        session_key: Option<String>,
+        proxy: Option<String>,
+        stealth: bool,
+        cookie: Option<String>,
+        wait_for_selector: Option<String>,
+        pdf: PdfOptions,
+    ) -> Result<PdfResult, String> {
+        let (reply, rx) = oneshot::channel();
+        self.tx
+            .send(Job::Pdf(PdfJob {
+                url,
+                timeout_ms,
+                session_key,
+                proxy,
+                stealth,
+                cookie,
+                wait_for_selector,
+                pdf,
+                reply,
+            }))
+            .await
+            .map_err(|_| "browser worker gone".to_string())?;
+        rx.await.map_err(|_| "browser worker dropped".to_string())?
+    }
 }
 
 async fn worker_loop(
@@ -112,6 +155,24 @@ async fn worker_loop(
                     job.session_key.as_deref(),
                     job.proxy.as_deref(),
                     job.stealth,
+                )
+                .await;
+                let _ = job.reply.send(result);
+            }
+            Job::Pdf(job) => {
+                let result = run_pdf(
+                    &mut browsers,
+                    &config,
+                    &blocklist,
+                    &profile_kind,
+                    job.url,
+                    job.timeout_ms,
+                    job.session_key.as_deref(),
+                    job.proxy.as_deref(),
+                    job.stealth,
+                    job.cookie.as_deref(),
+                    job.wait_for_selector.as_deref(),
+                    &job.pdf,
                 )
                 .await;
                 let _ = job.reply.send(result);
@@ -186,6 +247,35 @@ async fn run_fetch(
 ) -> Result<FetchResult, String> {
     let page = open_page(browsers, config, session_key, proxy).await?;
     fetch::fetch_with_page(page, blocklist, profile_kind, stealth, &url, timeout_ms).await
+}
+
+async fn run_pdf(
+    browsers: &mut HashMap<String, Browser>,
+    config: &Config,
+    blocklist: &Blocklist,
+    profile_kind: &ProfileKind,
+    url: String,
+    timeout_ms: u64,
+    session_key: Option<&str>,
+    proxy: Option<&str>,
+    stealth: bool,
+    cookie: Option<&str>,
+    wait_for_selector: Option<&str>,
+    pdf_opts: &PdfOptions,
+) -> Result<PdfResult, String> {
+    let page = open_page(browsers, config, session_key, proxy).await?;
+    pdf::pdf_with_page(
+        page,
+        blocklist,
+        profile_kind,
+        stealth,
+        &url,
+        timeout_ms,
+        cookie,
+        wait_for_selector,
+        pdf_opts,
+    )
+    .await
 }
 
 fn sanitize_session_dir(root: &Path, key: &str) -> PathBuf {

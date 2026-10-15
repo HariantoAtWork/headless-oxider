@@ -1,6 +1,6 @@
 [package]
 name = "headless-oxider"
-version = "1.1.1"
+version = "1.2.0"
 edition = "2021"
 description = "Stealth Chromium fetch service (Rust + chaser-oxide)"
 publish = false
@@ -8,6 +8,7 @@ publish = false
 [dependencies]
 anyhow = "1"
 axum = "0.8"
+base64 = "0.22"
 chaser-oxide = "0.2"
 futures = "0.3"
 rand = "0.8"

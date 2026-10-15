@@ -12,7 +12,10 @@ Same REST contract as `headless-playwright` — the Nuxt blog talks HTTP only. P
 | --- | --- | --- | --- |
 | `GET` | `/health` | — | `{ ok, browser, stealth, profile, blocklist }` |
 | `POST` | `/fetch` | `{ url, timeoutMs?, sessionKey?, proxy?, stealth? }` | `{ ok, title, html, url, latencyMs, stealth, profile }` |
+| `POST` | `/pdf` | `{ url, timeoutMs?, cookie?, waitForSelector?, pdf?, sessionKey?, proxy?, stealth? }` | raw `application/pdf` |
 | `GET` | `/` | — | service blurb |
+
+Shared PDF contract with `headless-playwright` (CDP `Page.printToPDF`). Default wait selector `[data-cv-print-ready="true"]`; CV-oriented `pdf` defaults match Playwright (A4, scale 0.79, backgrounds on, zero margins).
 
 ## Stealth stack
 
@@ -112,6 +115,8 @@ Run the same URLs through Obscura, Camoufox, and this service; record pass/fail:
 | `SESSIONS_DIR` | `/var/lib/headless-oxider/sessions` | Sticky profiles |
 | `DOCKERHUB_USERNAME` | `harianto` | Compose image namespace |
 
-## Blog plugin
+## Blog / CV plugin
 
 `RUST_FETCH_BASE_URL=http://127.0.0.1:9381` — enable **Rust (Chromium)** under `/system/browsers`.
+
+Local apps may pass a **headless-tunnel** URL as `url` in `POST /pdf` when the app itself is not reachable from this host — no Oxider changes required.
