@@ -440,10 +440,11 @@ checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 
 [[package]]
 name = "headless-oxider"
-version = "1.1.1"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "axum",
+ "base64",
  "chaser-oxide",
  "futures",
  "rand 0.8.7",
