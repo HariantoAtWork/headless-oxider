@@ -11,14 +11,14 @@ Ready-to-copy: [`docker-compose.image.yml`](docker-compose.image.yml)
 ```yaml
 services:
   headless-oxider:
-    image: harianto/headless-oxider:1.1.1
+    image: harianto/headless-oxider:1.2.0
     ports:
       - "9381:9381"
     shm_size: "1gb"
     restart: unless-stopped
 
   headless-oxider-headful:
-    image: harianto/headless-oxider:1.1.1
+    image: harianto/headless-oxider:1.2.0
     ports:
       - "9382:9381"
     environment:
@@ -77,7 +77,7 @@ Optional overrides only when you need them:
 ```yaml
 services:
   headless-oxider:
-    image: harianto/headless-oxider:1.1.1
+    image: harianto/headless-oxider:1.2.0
     ports:
       - "9381:9381"
     shm_size: "1gb"

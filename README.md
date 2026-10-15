@@ -46,7 +46,7 @@ curl -s -X POST http://127.0.0.1:9381/fetch \
 Pull a published image (no local build):
 
 ```bash
-docker pull harianto/headless-oxider:1.1.1
+docker pull harianto/headless-oxider:1.2.0
 ```
 
 Minimal compose (Hub `image:` only, env from image defaults). Plain `up -d` starts **both** headless (**9381**) and headful/Xvfb (**9382**) — no profiles (Synology-friendly):
@@ -74,8 +74,8 @@ First build compiles chaser-oxide / CDP bindings — expect several minutes.
 Pushing a **git tag** builds and pushes a **multi-arch** image (`linux/amd64` + `linux/arm64`):
 
 ```bash
-git tag v1.1.1
-git push origin v1.1.1
+git tag v1.2.0
+git push origin v1.2.0
 ```
 
 That yields Docker Hub tags such as `1.1.1`, `1.1`, and `latest`. GitHub does not create versions automatically — only a `v*` tag (or a manual workflow run) publishes.
