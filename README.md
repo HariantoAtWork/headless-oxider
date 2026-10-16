@@ -32,32 +32,40 @@ Shared PDF contract with `headless-playwright` (CDP `Page.printToPDF`). Default 
 
 `STEALTH=0` disables profile/blocklist/humanise (debug only).
 
-## Run
+## Use
+
+### Hub image (recommended)
 
 ```bash
-cp .env.example .env
-docker compose up -d --build
+docker pull harianto/headless-oxider:1.2.0
+docker compose -f docs/docker-compose.image.yml up -d
 curl -s http://127.0.0.1:9381/health | jq .
 curl -s -X POST http://127.0.0.1:9381/fetch \
   -H 'Content-Type: application/json' \
   -d '{"url":"https://example.com"}' | jq '{title, stealth, profile, latencyMs}'
 ```
 
-Pull a published image (no local build):
+Plain `up -d` on that compose file starts **both** headless (**9381**) and headful/Xvfb (**9382**) — no profiles (Synology-friendly). Details: [docs/run-published-image.md](docs/run-published-image.md).
+
+**PDF**
 
 ```bash
-docker pull harianto/headless-oxider:1.2.0
+curl -s -X POST http://127.0.0.1:9381/pdf \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://example.com","waitForSelector":"h1"}' \
+  -o page.pdf
 ```
 
-Minimal compose (Hub `image:` only, env from image defaults). Plain `up -d` starts **both** headless (**9381**) and headful/Xvfb (**9382**) — no profiles (Synology-friendly):
+### Local build
 
 ```bash
-docker compose -f docs/docker-compose.image.yml up -d
+cp .env.example .env
+docker compose up -d --build
 ```
 
-See [docs/run-published-image.md](docs/run-published-image.md).
+First build compiles chaser-oxide / CDP bindings — expect several minutes.
 
-Headful / Xvfb (local build / repo compose, optional profile):
+Headful / Xvfb (optional profile):
 
 ```bash
 docker compose --profile headful up -d --build
@@ -65,9 +73,7 @@ docker compose --profile headful up -d --build
 
 Do not export `HEADFUL=1` for the default service — that container has no display. The headful service already sets `HEADFUL=1` itself.
 
-Default host ports: **9381** (headless), **9382** (headful / Xvfb). Related stack: Playwright 9380, Camoufox 9377, Obscura 9222.
-
-First build compiles chaser-oxide / CDP bindings — expect several minutes.
+Default host ports: **9381** (headless), **9382** (headful / Xvfb). Related: Playwright 9380, Camoufox 9377, Obscura 9222, Tunnel 9382.
 
 ## Publish (GitHub Actions → Docker Hub)
 
