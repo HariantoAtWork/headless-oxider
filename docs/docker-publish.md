@@ -2,6 +2,8 @@
 
 How images get from this repo to [Docker Hub](https://hub.docker.com/r/harianto/headless-oxider).
 
+New to SemVer? Start with [semver-releases.md](./semver-releases.md) (how to choose `vMAJOR.MINOR.PATCH` and cut a release). This page is the mechanics.
+
 ## Short version
 
 1. You push a **git tag** like `v1.2.0`.

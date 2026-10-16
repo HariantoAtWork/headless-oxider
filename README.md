@@ -84,6 +84,8 @@ Requires repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`.
 
 Full details: [docs/docker-publish.md](docs/docker-publish.md) (when to tag, tag mapping, multi-arch, secrets).
 
+**Learn SemVer for this stack:** [docs/semver-releases.md](docs/semver-releases.md) — when to bump major/minor/patch, the release checklist, and common mistakes.
+
 ## Stealth smoke matrix (manual)
 
 Run the same URLs through Obscura, Camoufox, and this service; record pass/fail:
